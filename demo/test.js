@@ -41,10 +41,10 @@ function doEmail(to, title, body) {
 function doRequest() {
     try {
         request('https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/silver-fern-job-search-work-visa', function(error, response, body) {
-            if (error || response == null || response.hasOwnProperty("statusCode")) {
+            if (error || response == null) {
                 myLog('contain error ' + error);
                 doEmail(toAddress, 'error', 'error = ' + error + 'response = ' + response);
-                setTimeout(doRequest, 10 * 60 * 1000);
+                setTimeout(doRequest, 5 * 1000);
                 return;
             }
             if (response.statusCode == 200) {
@@ -61,7 +61,7 @@ function doRequest() {
             } else {
                 myLog('statusCode not 200 ' + response.statusCode);
                 doEmail(toAddress, 'statusCode', 'statusCode = ' + statusCode);
-                setTimeout(doRequest, 60 * 1000);
+                setTimeout(doRequest, 30 * 1000);
                 return;
             }
             myLog('error = ' + error + 'code = ' + response.statusCode);
@@ -69,7 +69,7 @@ function doRequest() {
     } catch (err) {
         myLog('catch err ' + err);
         doEmail(toAddress, 'err', 'error = ' + err);
-        setTimeout(doRequest, 10 * 60 * 1000);
+        setTimeout(doRequest, 30 * 1000);
     }
 }
 
