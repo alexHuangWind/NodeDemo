@@ -39,36 +39,43 @@ function doEmail(to, title, body) {
 }
 
 function doRequest() {
-    request('https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/silver-fern-job-search-work-visa', function(error, response, body) {
-        myLog('error = ' + error + 'code = ' + response.statusCode);
-        if (error || response == null) {
-            myLog('contain error ' + error);
-            doEmail(toAddress, 'error', 'error = ' + error + 'response = ' + response);
-            setTimeout(doRequest, 10 * 60 * 1000);
-            return;
-        }
-        if (response.statusCode == 200) {
-            if (body.indexOf("This visa is closed and will open on") != -1) {
-                myLog('contain closed');
-                count++;
-                setTimeout(doRequest, 3 * 1000);
-            } else {
-                myLog('contain opened');
-                doEmail(toAddress, response.body, 'success');
-                count = 0;
+    try {
+        request('https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/silver-fern-job-search-work-visa', function(error, response, body) {
+            if (error || response == null || response.hasOwnProperty("statusCode")) {
+                myLog('contain error ' + error);
+                doEmail(toAddress, 'error', 'error = ' + error + 'response = ' + response);
+                setTimeout(doRequest, 10 * 60 * 1000);
                 return;
             }
-        }else{
-            myLog('statusCode not 200 ' + response.statusCode);
-            doEmail(toAddress, 'statusCode', 'statusCode = ' + statusCode);
-            setTimeout(doRequest, 60 * 1000);
-            return; 
-        }
-    })
+            if (response.statusCode == 200) {
+                if (body.indexOf("This visa is closed and will open on") != -1) {
+                    myLog('contain closed');
+                    count++;
+                    setTimeout(doRequest, 3 * 1000);
+                } else {
+                    myLog('contain opened');
+                    doEmail(toAddress, response.body, 'success');
+                    count = 0;
+                    return;
+                }
+            } else {
+                myLog('statusCode not 200 ' + response.statusCode);
+                doEmail(toAddress, 'statusCode', 'statusCode = ' + statusCode);
+                setTimeout(doRequest, 60 * 1000);
+                return;
+            }
+            myLog('error = ' + error + 'code = ' + response.statusCode);
+        })
+    } catch (err) {
+        myLog('catch err ' + err);
+        doEmail(toAddress, 'err', 'error = ' + err);
+        setTimeout(doRequest, 10 * 60 * 1000);
+    }
 }
 
+
 function doReport() {
-    if(count==0){
+    if (count == 0) {
         return;
     }
     doEmail(toAddress, '已发送信息数：' + count);
