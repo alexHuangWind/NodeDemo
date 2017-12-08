@@ -3,12 +3,13 @@ var winston = require('winston');
 request = require('request');
 //1.引入邮件功能
 nodemailer = require('nodemailer');
- alexAddress = 'alexchyandroid@gmail.com';
- leoAddress = 'alexchyandroid@gmail.com';
- toAddress = alexAddress;
-count = 0;
+alexAddress = 'alexchyandroid@gmail.com';
+leoAddress = 'alexchyandroid@gmail.com';
+toAddress = alexAddress;
+count = 1;
 doReport();
-function doEmail(to,title,body) {
+
+function doEmail(to, title, body) {
     //2创建一个传输对象
     let transporter = nodemailer.createTransport({
         host: 'smtp.sina.com',
@@ -33,38 +34,48 @@ function doEmail(to,title,body) {
         if (error) {
             return myLog(error);
         }
-        myLog(' doEmail  ' + 'to = '+to + 'title = '+title+ 'body = '+body);
+        myLog(' doEmail  ' + 'to = ' + to + 'title = ' + title + 'body = ' + body);
     });
 }
 
 function doRequest() {
     request('https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/silver-fern-job-search-work-visa', function(error, response, body) {
-        myLog('error = ' + error +'code = ' + response.statusCode);
-            if (error) {
-            myLog('contain error');
-            doEmail(toAddress,'error',error);
-            setTimeout(doRequest, 10*60*1000);
+        myLog('error = ' + error + 'code = ' + response.statusCode);
+        if (error || response == null) {
+            myLog('contain error ' + error);
+            doEmail(toAddress, 'error', 'error = ' + error + 'response = ' + response);
+            setTimeout(doRequest, 10 * 60 * 1000);
             return;
-            }
-            if(response.statusCode == 200){
+        }
+        if (response.statusCode == 200) {
             if (body.indexOf("This visa is closed and will open on") != -1) {
                 myLog('contain closed');
                 count++;
-                setTimeout(doRequest, 3*1000);
+                setTimeout(doRequest, 3 * 1000);
             } else {
                 myLog('contain opened');
-                doEmail(toAddress,response.body,'success');
+                doEmail(toAddress, response.body, 'success');
                 count = 0;
+                return;
             }
+        }else{
+            myLog('statusCode not 200 ' + response.statusCode);
+            doEmail(toAddress, 'statusCode', 'statusCode = ' + statusCode);
+            setTimeout(doRequest, 60 * 1000);
+            return; 
         }
     })
 }
 
 function doReport() {
-    doEmail(toAddress,'已发送信息数：'+count);
-    setTimeout(doReport, 60*60*1000);
+    if(count==0){
+        return;
+    }
+    doEmail(toAddress, '已发送信息数：' + count);
+    setTimeout(doReport, 60 * 60 * 1000);
 }
-function myLog(msg){
-winston.info(msg, {timestamp: Date.now(), pid: process.pid});
+
+function myLog(msg) {
+    winston.info(msg, { timestamp: Date.now(), pid: process.pid });
 }
 doRequest();
