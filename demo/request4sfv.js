@@ -17,7 +17,7 @@ function doEmail(to,title,body) {
     });
     //3、用unicode字符设置电子邮件数据
     let mailOptions = {
-        from: '"alex" <alexusedforsfv@sina.com>',, //邮件来源
+        from: '"alex" <alexusedforsfv@sina.com>', //邮件来源
         //to: 'nzleo@foxmail.com', //邮件发送到哪里，多个邮箱使用逗号隔开
         to: to,
         subject: title, // 邮件主题
