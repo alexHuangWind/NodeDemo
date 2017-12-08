@@ -1,10 +1,14 @@
+//日志框架
+var winston = require('winston');
+var mylogger = new winston.myLogger();
+//请求
 request = require('request');
 //1创建一个
 nodemailer = require('nodemailer');
 count = 0;
 doReport();
 function doEmail(to,title,body) {
-     console.log('begin doEmail  ' + 'to = '+to + 'title = '+title+ 'body = '+body);
+     myLog('begin doEmail  ' + 'to = '+to + 'title = '+title+ 'body = '+body);
     //2创建一个传输对象
     let transporter = nodemailer.createTransport({
         host: 'smtp.sina.com',
@@ -27,22 +31,22 @@ function doEmail(to,title,body) {
     //4、使用第二步定义的传输对象发送邮件
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            return console.log(error);
+            return myLog(error);
         }
-        console.log('Message %s sent: %s', info.messageId, info.response);
+        myLog('Message %s sent: %s', info.messageId, info.response);
     });
 }
 
 function doRequest() {
     request('https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/silver-fern-job-search-work-visa', function(error, response, body) {
-        console.log('error = ' + error +'response = ' + response +'body = ' + body );
+        myLog('error = ' + error +'response = ' + response +'body = ' + body );
         if (!error && response.statusCode == 200) {
             if (body.indexOf("This visa is closed and will open on") != -1) {
-                console.log('closed');
+                myLog('closed');
                 count++;
-                setTimeout(doRequest, 10*1000);
+                setTimeout(doRequest, 3*1000);
             } else {
-                console.log('包含 opened');
+                myLog('包含 opened');
                 doEmail('alexchyandroid@gmail.com',response.body,'success');
                 count = 0;
             }
@@ -52,7 +56,9 @@ function doRequest() {
 
 function doReport() {
     doEmail('alexchyandroid@gmail.com','已发送信息数：'+count);
-    setTimeout(doReport, 30*60*1000);
+    setTimeout(doReport, 60*60*1000);
 }
-
+function myLog(msg){
+winston.info(msg, {timestamp: Date.now(), pid: process.pid});
+}
 doRequest();
